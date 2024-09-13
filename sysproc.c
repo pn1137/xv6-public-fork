@@ -89,3 +89,13 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// MY SYSCALLS
+//
+
+int
+sys_hello(void)
+{
+  cprintf("Hello, kernel!\n");
+  return 0;
+}

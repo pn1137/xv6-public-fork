@@ -19,6 +19,9 @@ main(void)
   dup(0);  // stdout
   dup(0);  // stderr
 
+  // MY SYSCALL
+  hello();
+
   for(;;){
     printf(1, "init: starting sh\n");
     pid = fork();
