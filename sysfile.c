@@ -442,3 +442,185 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+// MY SYSCALLS
+//
+
+int
+write_open(char *path)
+{
+  int fd;
+  struct file *f;
+  struct inode *ip;
+  
+  if(argstr(0, &path) < 0)
+    return -1;
+
+  begin_op();
+
+  // Create the path
+  if((ip = namei(path)) == 0){
+    ip = create(path, T_FILE, 0, 0);
+    if(ip == 0){
+      end_op();
+      return -1;
+    }
+  } else {
+    ilock(ip);
+  }
+
+  // if there are more files than NFILE or there are more file desc than NOFILE
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  iunlock(ip);
+  end_op();
+
+  f->type = FD_INODE;
+  f->ip = ip;
+  f->off = 0;
+  f->readable = 0;
+  f->writable = 1;
+  return fd;
+}
+
+int
+sys_write_file(void)
+{
+  char *path;
+  int fd;
+  struct file *f, *stdin;
+  int n; // Number of characters read/to write
+  char p[512]; // Read/write buffer
+  
+  if(argstr(0, &path) < 0)
+    return -1;
+  
+  fd = write_open(path);
+  f = myproc()->ofile[fd];
+  stdin = myproc()->ofile[0]; // stdin is 0
+  
+  // Read from console and write to file until a blank line is found
+  while((n = fileread(stdin, p, sizeof(p))) > 0){
+    if (filewrite(f, p, n) != n){
+      cprintf("filewrite failed\n");
+      myproc()->ofile[fd] = 0;
+      fileclose(f);  
+      return -1;
+    }
+    
+    // Check for blank line: p = "\n"
+    if (n == 1){
+      if (p[0] != '\n'){
+        break;
+      }
+      
+      myproc()->ofile[fd] = 0;
+      fileclose(f);
+      return 0;
+    }
+  }
+  
+  cprintf("User forced exit\n");
+  myproc()->ofile[fd] = 0;
+  fileclose(f);
+  
+  return -1;
+}
+
+int
+read_open(char *path)
+{
+  int fd;
+  struct file *f;
+  struct inode *ip;
+  
+  if(argstr(0, &path) < 0)
+    return -1;
+
+  begin_op();
+
+  // Validate the path
+  if((ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+  
+  ilock(ip);
+
+  // if there are more files than NFILE or there are more file desc than NOFILE
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  iunlock(ip);
+  end_op();
+
+  f->type = FD_INODE;
+  f->ip = ip;
+  f->off = 0;
+  f->readable = 1;
+  f->writable = 0;
+  return fd;
+}
+
+int
+sys_head(void)
+{
+  char *path;
+  int fd;
+  struct file *f, *stdin;
+  int n; // Number of characters read
+  char p[512]; // Read/write buffer
+  int ln_found, ln_target;
+  
+  if(argstr(0, &path) < 0 || argint(1, &ln_target) < 0)
+    return -1;
+  
+  fd = read_open(path);
+  
+  if (fd <0){
+    cprintf("File does not exist\n");
+    return -1;
+  }
+  f = myproc()->ofile[fd];
+  stdin = myproc()->ofile[0]; // stdin is 0
+  ln_found = 0;
+  
+  // Read from file until ln_found equals ln_target or EOF is found
+  while((n = fileread(f, p, sizeof(p))) > 0){
+    int pos = 0;
+    while (pos < strlen(p)) {
+      if (p[pos] == '\n'){
+        ln_found++;
+      }
+      
+      pos++;      
+      
+      if (ln_found == ln_target){
+        p[pos] = '\0';
+        n = pos;
+        break;
+      }
+    }
+    
+    if (filewrite(stdin, p, n) != n){
+      cprintf("filewrite failed\n");
+      myproc()->ofile[fd] = 0;
+      fileclose(f);  
+      return -1;
+    }
+  }
+  
+  myproc()->ofile[fd] = 0;
+  fileclose(f);
+  
+  return 0;
+}

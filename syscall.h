@@ -22,3 +22,5 @@
 #define SYS_close  21
 // MY SYSCALLS
 #define SYS_hello  22
+#define SYS_write_file  23
+#define SYS_head   24

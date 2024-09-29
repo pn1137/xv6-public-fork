@@ -23,7 +23,10 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+// MY SYSCALLS
 int hello(void);
+int write_file(const char *);
+int head(const char *, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -105,6 +105,8 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 // MY SYSCALLS 
 extern int sys_hello(void);
+extern int sys_write_file(void);
+extern int sys_head(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +132,8 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 // MY SYSCALLS
 [SYS_hello]   sys_hello,
+[SYS_write_file]   sys_write_file,
+[SYS_head]    sys_head,
 };
 
 void

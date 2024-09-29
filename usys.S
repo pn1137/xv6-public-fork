@@ -31,3 +31,5 @@ SYSCALL(sleep)
 SYSCALL(uptime)
 # MY SYSCALLS
 SYSCALL(hello)
+SYSCALL(write_file)
+SYSCALL(head)
