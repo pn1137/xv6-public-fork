@@ -6,9 +6,9 @@ main(int argc, char *argv[])
 {
   int lines;
   char *arg;
-  
+
   lines = 5;
-  
+
   if (argc > 2) {
     arg = argv[2];
     if (*arg == '-'){
@@ -27,12 +27,12 @@ main(int argc, char *argv[])
     printf(1, "Usage: head filename [-n lines]\n");
     exit();
   }
-  
-  if (lines > 0){  
+
+  if (lines > 0){
     if (head(argv[1], lines)){
       printf(2, "Head failed!\n");
     }
   }
-  
+
 	exit();
 }

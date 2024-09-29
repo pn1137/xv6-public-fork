@@ -8,11 +8,11 @@ main(int argc, char *argv[])
     printf(1, "Usage: write_file filename\n");
     exit();
   }
-  
+
   if (write_file(argv[1])) {
     printf(2, "Write failed!\n");
     unlink(argv[1]);
   }
-  
+
 	exit();
 }
